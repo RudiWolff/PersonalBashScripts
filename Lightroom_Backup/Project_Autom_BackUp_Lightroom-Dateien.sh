@@ -3,10 +3,19 @@ set -x
 # Deklaration der Variablen:
 source="/mnt/Programme/LIGHTROOM_DATEN/LIGHTROOM_Katalog/"
 destination_orange="/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
+destination_silver=""
+destination_WD3TB=""
 ExcireBackUpDatei="Lightroom Classic Catalog-v10 Excire.excat"
 ExcireBakDatei="$ExcireBackUpDatei".bak
 lrcat=".lrcat"
 LRBackUpDatei="Lightroom Classic Catalog-v10"$lrcat
+
+# Prüfung, ob überhaupt eine Sicherung notwendig ist:
+# wenn source = destination, dann exit (?)
+
+b2sum_source=$(b2sum "$source$LRBackUpDatei" | cut -d' ' -f1)
+b2sum_dstorg=$(b2sum "$destination_orange$LRBackUpDatei" | cut -d' ' -f1)
+[ $b2sum_source = $b2sum_dstorg ] || exit 1
 
 # Excire-Daten
 cd "$destination_orange"
@@ -24,7 +33,7 @@ sudo chown rwolff:rwolff "$ExcireBackUpDatei.bak"
 
 # Lightroom-Katalog-Backup
 # Prüfe (Checksum), ob LRBackUpDatei = LRBackUpDatei.old ist
-# z.B. über den Befehl: b2sum "$f1" | cut -d' ' -f1
+# z.B. über den Befehl: b2sum "$LRBackUpDatei" | cut -d' ' -f1
 #   Wenn dem so ist, dann nichts weiter unternehmen.
 
 # Finde, ob eine Monatssicherung erstellt wurde. 

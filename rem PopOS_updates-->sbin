@@ -1,0 +1,89 @@
+#! /bin/bash
+
+# Automatisierte Pop!OS System-Updates
+
+# Funktion um eine Dekor-Linie auszugeben
+decor () {
+    test "$2" && echo $2 | tee -a $logDatei
+    for ((i=0;i<$1;i++));do
+        echo -n "*" | tee -a $logDatei
+    done
+echo | tee -a $logDatei
+}
+
+### Main Programm ###
+StartDate=$(date +%s)
+logDatei="/home/rwolff/.local/bin/PopOS_updates.log"
+weekday="Monday"    # Wochentag, an dem autoremove durchgeführt werden soll.
+day="01"            # Tag im Monat, an dem dist-upgrade durchgeführt werden soll.
+
+# El programa valida que s’executi com a root.
+if [ $EUID -ne 0 ];then
+    echo >&2 "ERROR: Cal ser root per executar el programa"
+    exit 1
+fi
+
+echo | tee $logDatei     # Vorhanden Datei leeren...
+
+akt="Es wird auf neue Aktualisierungen geprüft..."
+decor $(wc -c <<< $akt) "$akt"
+ apt update >> $logDatei 2>> $logDatei
+lastLine=$(tail -1 $logDatei)
+trigger="Todos los paquetes están actualizados."
+
+# Es wird geguckt, ob Updates vorhanden sind und, wenn ja, werden ausgeführt.
+if [ "$lastLine" != "$trigger" ];then
+    echo | tee -a  $logDatei
+    upgr="Es werden Upgrades durchgeführt. Bitte warten..."
+    decor $(wc -c <<< $upgr) "$upgr"
+     apt-get -y upgrade | tee -a $logDatei
+    echo | tee -a $logDatei
+else
+    echo -e "\nEs wurden keine Aktualisierungen durchgeführt.\n" | tee -a  $logDatei
+fi
+
+# An jedem ersten des Monats wird geprüft, ob ein dist-upgrade möglich ist.
+if [ $(date +%d) = $day  ];then
+    echo | tee -a  $logDatei
+    dist="Es wird das dist-upgrade durchgeführt..."
+    echo # -e "\n"$dist | tee -a $logDatei
+    decor $(wc -c <<< $dist) "$dist"
+     apt-get -y dist-upgrade | tee -a $logDatei
+    echo | tee -a $logDatei
+fi
+
+# An jedem Montag wird ein autoremove bzw. autoclean durchgeführt.
+if [ $(LC_ALL=C date +%A) = "$weekday" ];then
+    echo | tee -a  $logDatei
+    autorem="Es wird apt-get autoremove, autoclean & clean durchgeführt..."
+    decor $(wc -c <<< $autorem) "$autorem"
+     apt-get -y autoremove >> $logDatei 2>> $logDatei
+    echo >> $logDatei
+     apt-get autoclean >> $logDatei 2>> $logDatei
+    echo >> $logDatei
+fi
+
+# Es wird Flatpak aktualisiert
+echo | tee -a  $logDatei
+flpk="Es wird das Flatpak-Update durchgeführt."
+decor $(wc -c <<< $flpk) "$flpk"
+flatpak update -y | tee -a $logDatei
+echo >> $logDatei
+
+# Ende des Skripts
+echo | tee -a  $logDatei
+echo -e "\nDie Ergebnisse der Aktualisierung können in der Datei "$logDatei" eingesehen werden.\n"
+
+finish="Your update has finished."
+long=$(( 6+$(wc -c <<< $finish)+6 ))
+echo -n " " | tee -a  $logDatei
+decor $long
+echo -en " *      $finish     *\n" | tee -a  $logDatei
+echo -en " *    $(date)    *\n " | tee -a  $logDatei
+decor $long
+echo | tee -a  $logDatei
+echo Die Aktualisierung hat $(( $(date +%s)-$StartDate )) Sekunden gedauert. | tee -a  $logDatei
+echo
+
+# Pause zur direkten Prüfung der Ergebnisse.
+sleep 5

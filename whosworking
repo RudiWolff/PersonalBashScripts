@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Autor: Rüdiger Wolff
+# Skript, um zu erfahren, wer und wann am PC gearbeitet hat.
+# Die Ausgabe wird stündlich über einen Cron-job ausgeführt (/etc/cron.hourly) und
+# die Ausgaben an einem Tag in eine zusammengefasste Log-Datei geschrieben (log-YYYY-MM-DD).
+# Am Ende werden noch alte Log-Dateien gesucht und evtl. gelöscht.
+
+heute=$(date +%F)
+grenzwert=$(date +%F --date="2 weeks ago")
+pfad="/var/log/Arbeit/"
+logdatei=fleissige-Lieschen-$heute.log
+
+[ -d $pfad ] || mkdir -p $pfad
+
+(
+# Kern des Programms
+jetzt=$(date)
+echo "*** -\[ $jetzt \]- ***"
+who
+) >> $pfad$logdatei
+
+# Man kann wie folgt mit Datumsangaben rechnen:
+# date +%Y%m%d --date="2 weeks ago" => ergibt das Datum vor 15 Tagen im Format +%Y%m%d
+find $pfad -type f -name *$grenzwert.log -delete

@@ -23,3 +23,5 @@ who
 # Man kann wie folgt mit Datumsangaben rechnen:
 # date +%Y%m%d --date="2 weeks ago" => ergibt das Datum vor 15 Tagen im Format +%Y%m%d
 find $pfad -type f -name *$grenzwert.log -delete
+
+# echo Say hello to github

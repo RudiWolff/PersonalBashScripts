@@ -1,0 +1,34 @@
+Automatisches BackUp der Lightroom-Katalog-Dateien:
+=====================================================
+
+1. Die alte Katalog-Datei mit "-alt" umbenennen.
+2. Die aktuelle Katalog-Datei auf BackUp-HDD kopieren.
+3. Gucken, ob für den laufenden Monat bereits eine Datei besteht. Wenn nicht, die auf BackUp-HDD übertragene Datei kopieren mit generiertem Zeitstempel -yyyymm an Namen vor Extension 
+4. Die Excire-Dateien auf BackUp-HDD mit .old-Extension löschen.
+5. Die Excire-Dateien auf BackUp-HDD eine .old-Extension anhängen.
+6. Die aktuellen Excire-Dateien  auf BackUp-HDD kopieren.
+
+Idealerweise bei System-Boot alle 2 Wochen - mit Rückfrage, ob die BackUp-HDD tatsächlich gemountet ist.
+Rückfrage mit: hdd="/media/rwolff/Seagate FOTOGRAFIE Backup 022019/" [ -d "$hdd" ] && echo "Backup-HDD gemountet" || echo "HDD nicht eingesteckt"
+
+Snippet: öffnet einen Dialog, der bei 'no' eine 1 und bei 'Si' eine 0 zurückgibt.
+         Wenn 'Si' geklickt wird, öffnet sich ein neues Terminal-Fenster, in dem das Skript hello.sh ausgeführt wird.
+#!/bin/bash
+zenity --question --window-icon=warning --title="Backup" --text="Backup-Medium einstecken bitte!\
+        \nHier noch eine Beschreibung."
+[ $? -eq 0 ] && gnome-terminal -- bash -c "/home/rwolff/Documentos/Skripte/hello.sh; exec bash" || exit 5
+
+
+Sicherung der Thunderbird-Daten von ~/.thunderbird nach "/mnt/Daten/Persönliche Daten/Mails/"
+===============================================================================================
+
+=> mit rsync von Quelle zum Ziel die neueren Dateien kopieren
+-> wöchentlicher cronjob
+
+Skript zur Überprüfung wer wann den Lenovo IdeaPad benutzt
+============================================================
+
+stündlicher Cron job, der den Befehl 'who' o.ä. ausführt.
+
+
+'error', 'info', 'question' or 'warning'

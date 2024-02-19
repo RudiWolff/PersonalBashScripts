@@ -7,6 +7,8 @@ Automatisches BackUp der Lightroom-Katalog-Dateien:
 4. Die Excire-Dateien auf BackUp-HDD mit .old-Extension löschen.
 5. Die Excire-Dateien auf BackUp-HDD eine .old-Extension anhängen.
 6. Die aktuellen Excire-Dateien  auf BackUp-HDD kopieren.
+7. Lightroom-Keywords sichern .../Lightroom Backup/Lightroom Keywords/
+8. CameraProfiles  sichern .../Lightroom Backup/CameraProfiles
 
 Idealerweise bei System-Boot alle 2 Wochen - mit Rückfrage, ob die BackUp-HDD tatsächlich gemountet ist.
 Rückfrage mit: hdd="/media/rwolff/Seagate FOTOGRAFIE Backup 022019/" [ -d "$hdd" ] && echo "Backup-HDD gemountet" || echo "HDD nicht eingesteckt"

@@ -1,19 +1,25 @@
 #!/bin/bash
 
 # Deklaration der Variablen:
-source="/mnt/Programme/LIGHTROOM_DATEN/LIGHTROOM_Katalog/"
-destination_orange="/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
-destination_silver="/media/rwolff/Seagate BACKUP Drive/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
-destination_WD3TB=""
+### Für Test-Zwecke
+source="/home/rwolff/testing/source/"
+destination_orange="/home/rwolff/testing/destination_orange/"
+destination_silver="/home/rwolff/testing/destination_silver/"
+destination_WD3TB="/home/rwolff/testing/destination_WD3TB/"
+
+#source="/mnt/Programme/LIGHTROOM_DATEN/LIGHTROOM_Katalog/"
+#destination_orange="/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
+#destination_silver="/media/rwolff/Seagate BACKUP Drive/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
+#destination_WD3TB=""
 ExcireBackUpDatei="Lightroom Classic Catalog-v13 Excire.excat"
 ExcireBakDatei="$ExcireBackUpDatei".bak
 lrcat=".lrcat"
 LRBackUpName="Lightroom Classic Catalog-v13"
 LRBackUpDatei="Lightroom Classic Catalog-v13"$lrcat
-aktuellerMonat=$(date +%Y-%m)
+aktuellerMonat="2024-03"#$(date +%Y-%m)
 
 ### --- Funktionen --- ###
-==========================
+#========================#
 
 # Funktion zur Überprüfung das Kopiervorgang richtig verlaufen ist.
 # Braucht als Argumente die Quelle, das Ziel und den Namen der Datei
@@ -63,7 +69,7 @@ Monats-Sicherung () {
 }
 
 ### --- Haupt-Programm --- ###
-==============================
+#============================#
 
 # For-Schleife geht durch die 3 HDDs und führt die BackUps durch
 for destination in "$destination_orange" "$destination_silver" "$destination_WD3TB"; do
@@ -79,19 +85,17 @@ else
     # keine weiteren Aktionen notwendig.
     chksum "$source" "$destination" "$LRBackUpDatei"
     if [ $? -eq 0 ]; then
-        fensterbox info "${LRBackUpDatei} auf ${source} ist bereits auf ${destination_orange} gesichert." &
+        fensterbox info "${LRBackUpDatei} auf ${source} ist bereits auf ${destination} gesichert." &
     else
         # Wechsel auf das Ziel-Verzeichnis
         cd "$destination"
         
-        Excire-Daten-Backup $source $destination $ExcireBackUpDatei
+        Excire-Daten-Backup "$source" "$destination" "$ExcireBackUpDatei"
         
-        Lightroom-Katalog-Backup $source $destination $LRBackUpDatei
+        Lightroom-Katalog-Backup "$source" "$destination" "$LRBackUpDatei"
         
         # Finde, ob eine Monatssicherung erstellt wurde. 
-        Monats-Sicherung $destination $aktuellerMonat $LRBackUpName
-#        bkp=$(find $destination -type f -name "*${aktuellerMonat}*")
-#        [ -z $bkp ] && cp "$destination$LRBackUpDatei" "$destination$LRBackUpName-$(date +%Y-%m)$lrcat"
+        Monats-Sicherung "$destination" $aktuellerMonat "$LRBackUpName"
     fi
 fi
 done

@@ -2,7 +2,7 @@
 
 # Deklaration der Variablen:
 ### Für Test-Zwecke
-source="/home/rwolff/testing/source/"
+source="/home/rwolff/testing/sou rce/"
 destination_orange="/home/rwolff/testing/destination orange/"
 destination_silver="/home/rwolff/testing/destination silver/"
 destination_WD3TB="/home/rwolff/testing/destination WD3TB/"
@@ -10,12 +10,13 @@ destination_WD3TB="/home/rwolff/testing/destination WD3TB/"
 #source="/mnt/Programme/LIGHTROOM_DATEN/LIGHTROOM_Katalog/"
 #destination_orange="/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
 #destination_silver="/media/rwolff/Seagate BACKUP Drive/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
-#destination_WD3TB=""
+#destination_WD3TB="/media/rwolff/WD SONSTIGE DATEN 092014/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
 ExcireBackUpDatei="Lightroom Classic Catalog-v10 Excire.excat"
 ExcireBakDatei="$ExcireBackUpDatei".bak
 lrcat=".lrcat"
 LRBackUpName="Lightroom Classic Catalog-v10"
 LRBackUpDatei="$LRBackUpName"$lrcat
+LREinstellungen="Ajustes de Lightroom"
 aktuellerMonat=$(date +%Y-%m)
 
 ### --- Funktionen --- ###
@@ -24,9 +25,9 @@ aktuellerMonat=$(date +%Y-%m)
 # Funktion zur Überprüfung das Kopiervorgang richtig verlaufen ist.
 # Braucht als Argumente die Quelle, das Ziel und den Namen der Datei
 chksum() {
-    b2sum_source=$(b2sum "$1$3" | cut -d' ' -f1)
-    b2sum_dstorg=$(b2sum "$2$3" | cut -d' ' -f1)
-    [ $b2sum_source = $b2sum_dstorg ] || return 1
+    chksum_source=$(b3sum "$1$3" | cut -d' ' -f1)
+    chksum_dstorg=$(b3sum "$2$3" | cut -d' ' -f1)
+    [ $chksum_source = $chksum_dstorg ] || return 1
 }
 
 # Funktion öffnet Fenster-Box mit Warning/Error/Info/Frage
@@ -41,35 +42,39 @@ Excire-Daten-Backup () {
     [ $? -eq 0 ] || fensterbox error "Error: Kopiervorgang fehlgeschlagen."
     mv "$3.bak" "$3.bak".old
     [ $? -eq 0 ] || fensterbox error "Error: Kopiervorgang fehlgeschlagen."
-    rsync -av --info=progress1 "$1$3" "$2"
+    rsync -ah --info=progress2 "$1$3" "$2"
     [ $? -eq 0 ] || fensterbox error "Error: Sync-Vorgang fehlgeschlagen."
-    chown rwolff:rwolff "$3"
-    rsync -av --info=progress1 "$1$3.bak" "$2"
+#    chown rwolff:rwolff "$3"
+    rsync -ah --info=progress2 "$1$3.bak" "$2"
     [ $? -eq 0 ] || fensterbox error "Error: Sync-Vorgang fehlgeschlagen."
-    chown rwolff:rwolff "$3.bak"
+#    chown rwolff:rwolff "$3.bak"
     fensterbox info "Excire-Daten-Backup auf\n${2}\nabgeschlossen." &
 }
 
 # Lightroom-Katalog-Backup
 Lightroom-Katalog-Backup () {
-    rsync -av --info=progress1 "$1$3" "$2"
+    mv "$2$3" "$2$3".old
+    rsync -ah --info=progress2 "$1$3" "$2"
     if [ $? -eq 0 ];then
         fensterbox info "Lightroom-Katalog-Backup auf ${destination} abgeschlossen.\n$(date +%d.%m.%Y' '%R)" &
     else
         fensterbox error "Sync-Vorgang auf ${destination} fehlgeschlagen.\n$(date +%d.%m.%Y' '%R)"
     fi
-    chown rwolff:rwolff "$LRBackUpDatei"
+#    chown rwolff:rwolff "$LRBackUpDatei"
 }
 
 # Monats-Sicherung
 Monats-Sicherung () {
     # Finde, ob eine Monatssicherung erstellt wurde. 
     bkp=$(find "$1" -type f -name "*$2*")
-    [ -z $bkp ] && cp "$1$3.lrcat" "$1$3-$2.lrcat"
+    [ -z "$bkp" ] && cp "$1$3.lrcat" "$1$3-$2.lrcat"
 
 }
 
-
+# Sicherung der Lightroom-Einstellungen
+Ajustes-Sicherung () {
+    rsync -ah --info=progress2 "$1$3/" "$2$3"
+}
 
 ### --- Haupt-Programm --- ###
 #============================#
@@ -99,7 +104,7 @@ else
         
         Monats-Sicherung "$destination" $aktuellerMonat "$LRBackUpName"
         
-#        Ajustes-Sicherung "$source" "$destination"
+        Ajustes-Sicherung "$source" "$destination" "$LREinstellungen"
         
     fi
 fi

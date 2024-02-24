@@ -25,7 +25,8 @@ aktuellerMonat=$(date +%Y-%m)
 # Funktion zur Überprüfung das Kopiervorgang richtig verlaufen ist.
 # Braucht als Argumente die Quelle, das Ziel und den Namen der Datei
 chksum() {
-    chksum_source=$(b3sum "$1$3" | cut -d' ' -f1)
+    echo "Überprüfung auf neuere Datei. $(date +%F' '%R)"
+    chksum_source=$(b3sum "$1$3" | cut -d' ' -f1 &)
     chksum_dstorg=$(b3sum "$2$3" | cut -d' ' -f1)
     [ $chksum_source = $chksum_dstorg ] || return 1
 }
@@ -37,23 +38,28 @@ fensterbox () {
 
 # Excire-Daten-Backup
 Excire-Daten-Backup () {
-    rm "$3"*.old
-    mv "$3" "$3".old
-    [ $? -eq 0 ] || fensterbox error "Error: Kopiervorgang fehlgeschlagen."
-    mv "$3.bak" "$3.bak".old
-    [ $? -eq 0 ] || fensterbox error "Error: Kopiervorgang fehlgeschlagen."
+    echo "Excire-Daten werden gesichert... $(date +%F' '%R)"
+    [ -f "$3*.old" ] && rm "$3"*.old
+    if [ -f "$3" ]; then
+        mv "$3" "$3".old
+        [ $? -eq 0 ] || fensterbox error "Error: Kopiervorgang fehlgeschlagen."
+    fi
+    if [ -f "$3.bak" ];then
+        mv "$3.bak" "$3.bak".old
+        [ $? -eq 0 ] || fensterbox error "Error: Kopiervorgang fehlgeschlagen."
+    fi
     rsync -ah --info=progress2 "$1$3" "$2"
     [ $? -eq 0 ] || fensterbox error "Error: Sync-Vorgang fehlgeschlagen."
 #    chown rwolff:rwolff "$3"
     rsync -ah --info=progress2 "$1$3.bak" "$2"
     [ $? -eq 0 ] || fensterbox error "Error: Sync-Vorgang fehlgeschlagen."
 #    chown rwolff:rwolff "$3.bak"
-    fensterbox info "Excire-Daten-Backup auf\n${2}\nabgeschlossen." &
 }
 
 # Lightroom-Katalog-Backup
 Lightroom-Katalog-Backup () {
-    mv "$2$3" "$2$3".old
+    echo "Lightroom-Daten werden gesichert... $(date +%F' '%R)"
+    [ -f "$2$3" ] && mv "$2$3" "$2$3".old
     rsync -ah --info=progress2 "$1$3" "$2"
     if [ $? -eq 0 ];then
         fensterbox info "Lightroom-Katalog-Backup auf ${destination} abgeschlossen.\n$(date +%d.%m.%Y' '%R)" &
@@ -67,12 +73,15 @@ Lightroom-Katalog-Backup () {
 Monats-Sicherung () {
     # Finde, ob eine Monatssicherung erstellt wurde. 
     bkp=$(find "$1" -type f -name "*$2*")
-    [ -z "$bkp" ] && cp "$1$3.lrcat" "$1$3-$2.lrcat"
-
+    if [ -z "$bkp" ];then
+        echo "Monats-Sicherung wird angelegt... $(date +%F' '%R)"    
+        cp "$1$3.lrcat" "$1$3-$2.lrcat"
+    fi
 }
 
 # Sicherung der Lightroom-Einstellungen
 Ajustes-Sicherung () {
+    echo "Lightroom Programm-Einstellungen werden gesichert... $(date +%F' '%R)"
     rsync -ah --info=progress2 "$1$3/" "$2$3"
 }
 
@@ -85,8 +94,8 @@ for destination in "$destination_orange" "$destination_silver" "$destination_WD3
 # Prüfung, ob die jeweilige HDD bereits gemountet ist.
 [ -d "$destination" ] || fensterbox question "Backup-Medium\n${destination}\neinstecken bitte\!\nSobald das Sicherungsmedium gemountet wurde,\nbitte mit 'Ja' bestätigen."
 if [ $? -ne 0 ];then
-    fensterbox question "Soll das Backup-Vorhaben für "$destination" abgebrochen werden?"
-    [ $? -eq 0 ] && exit
+    fensterbox question "Soll das gesamte Backup-Vorhaben abgebrochen werden?"
+    [ $? -eq 0 ] && exit 1
 else
     # Prüfung, ob überhaupt eine Sicherung notwendig ist:
     # wenn source = destination, dann wird Backup abgebrochen,
@@ -109,3 +118,5 @@ else
     fi
 fi
 done
+
+fensterbox info "Backup aller Lightroom-Daten abgeschlossen. $(date +%F' '%R)"

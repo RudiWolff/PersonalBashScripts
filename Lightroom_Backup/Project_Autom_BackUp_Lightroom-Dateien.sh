@@ -1,20 +1,22 @@
 #!/bin/bash
-
+(
 # Deklaration der Variablen:
 ### Für Test-Zwecke
-source="/home/rwolff/testing/sou rce/"
-destination_orange="/home/rwolff/testing/destination orange/"
-destination_silver="/home/rwolff/testing/destination silver/"
-destination_WD3TB="/home/rwolff/testing/destination WD3TB/"
+#source="/mnt/Programme/testing/sou rce/"
+#destination_orange="/mnt/Programme/testing/destination orange/"
+#destination_silver="/mnt/Programme/testing/destination silver/"
+#destination_WD3TB="/mnt/Programme/testing/destination WD3TB/"
 
-#source="/mnt/Programme/LIGHTROOM_DATEN/LIGHTROOM_Katalog/"
-#destination_orange="/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
-#destination_silver="/media/rwolff/Seagate BACKUP Drive/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
-#destination_WD3TB="/media/rwolff/WD SONSTIGE DATEN 092014/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
-ExcireBackUpDatei="Lightroom Classic Catalog-v10 Excire.excat"
+LR_version="v13"
+
+source="/mnt/Programme/LIGHTROOM_DATEN/LIGHTROOM_Katalog/"
+destination_orange="/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
+destination_silver="/media/rwolff/Seagate BACKUP Drive/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
+destination_WD3TB="/media/rwolff/WD SONSTIGE DATEN 092014/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
+ExcireBackUpDatei="Lightroom Classic Catalog-${LR_version} Excire.excat"
 ExcireBakDatei="$ExcireBackUpDatei".bak
 lrcat=".lrcat"
-LRBackUpName="Lightroom Classic Catalog-v10"
+LRBackUpName="Lightroom Classic Catalog-${LR_version}"
 LRBackUpDatei="$LRBackUpName"$lrcat
 LREinstellungen="Ajustes de Lightroom"
 aktuellerMonat=$(date +%Y-%m)
@@ -22,12 +24,18 @@ aktuellerMonat=$(date +%Y-%m)
 ### --- Funktionen --- ###
 #========================#
 
+# Funktion, die b3sum auf dem System installiert, falls nicht vorhanden.
+installer() {
+    fensterbox question "Soll $1 auf dem System installiert werden?"
+    [ $? -eq 0 ] && sudo apt install -y $1 || (echo "Backup wird abgebrochen."; exit 2)
+}
+
 # Funktion zur Überprüfung das Kopiervorgang richtig verlaufen ist.
 # Braucht als Argumente die Quelle, das Ziel und den Namen der Datei
 chksum() {
     echo "Überprüfung auf neuere Datei. $(date +%F' '%R)"
     chksum_source=$(b3sum "$1$3" | cut -d' ' -f1 &)
-    chksum_dstorg=$(b3sum "$2$3" | cut -d' ' -f1)
+    [ -f "$2$3" ] && chksum_dstorg=$(b3sum "$2$3" | cut -d' ' -f1)
     [ $chksum_source = $chksum_dstorg ] || return 1
 }
 
@@ -75,7 +83,7 @@ Monats-Sicherung () {
     bkp=$(find "$1" -type f -name "*$2*")
     if [ -z "$bkp" ];then
         echo "Monats-Sicherung wird angelegt... $(date +%F' '%R)"    
-        cp "$1$3.lrcat" "$1$3-$2.lrcat"
+        rsync -ah --info=progress2  "$1$3.lrcat" "$1$3-$2.lrcat"
     fi
 }
 
@@ -87,6 +95,12 @@ Ajustes-Sicherung () {
 
 ### --- Haupt-Programm --- ###
 #============================#
+
+# Zunächst wird geprüft, ob notwendige Software vorhanden ist
+which b3sum >& /dev/null
+[ $? -ne 0 ] && installer b3sum
+which rsync >& /dev/null
+[ $? -ne 0 ] && installer rsync
 
 # For-Schleife geht durch die 3 HDDs und führt die BackUps durch
 for destination in "$destination_orange" "$destination_silver" "$destination_WD3TB"; do
@@ -119,4 +133,7 @@ else
 fi
 done
 
-fensterbox info "Backup aller Lightroom-Daten abgeschlossen. $(date +%F' '%R)"
+Ende="Backup aller Lightroom-Daten abgeschlossen. $(date +%F' '%R)"
+fensterbox info "$Ende"
+echo $Ende
+) | tee /home/rwolff/Documentos/log/LR_Backup.log

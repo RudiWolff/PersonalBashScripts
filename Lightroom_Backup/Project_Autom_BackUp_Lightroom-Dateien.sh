@@ -1,4 +1,5 @@
 #!/bin/bash
+# Some logging. See end of script.
 (
 # Deklaration der Variablen:
 ### Für Test-Zwecke
@@ -35,7 +36,7 @@ installer() {
 chksum() {
     echo "Überprüfung auf neuere Datei. $(date +%F' '%R)"
     chksum_source=$(b3sum "$1$3" | cut -d' ' -f1 &)
-    [ -f "$2$3" ] && chksum_dstorg=$(b3sum "$2$3" | cut -d' ' -f1)
+    [ -f "$2$3" ] && chksum_dstorg=$(b3sum "$2$3" | cut -d' ' -f1) || chk2=0
     [ $chksum_source = $chksum_dstorg ] || return 1
 }
 
@@ -105,32 +106,33 @@ which rsync >& /dev/null
 # For-Schleife geht durch die 3 HDDs und führt die BackUps durch
 for destination in "$destination_orange" "$destination_silver" "$destination_WD3TB"; do
 
-# Prüfung, ob die jeweilige HDD bereits gemountet ist.
-[ -d "$destination" ] || fensterbox question "Backup-Medium\n${destination}\neinstecken bitte\!\nSobald das Sicherungsmedium gemountet wurde,\nbitte mit 'Ja' bestätigen."
-if [ $? -ne 0 ];then
-    fensterbox question "Soll das gesamte Backup-Vorhaben abgebrochen werden?"
-    [ $? -eq 0 ] && exit 1
-else
-    # Prüfung, ob überhaupt eine Sicherung notwendig ist:
-    # wenn source = destination, dann wird Backup abgebrochen,
-    # keine weiteren Aktionen notwendig.
-    chksum "$source" "$destination" "$LRBackUpDatei"
-    if [ $? -eq 0 ]; then
-        fensterbox info "${LRBackUpDatei} auf ${source} ist bereits auf ${destination} gesichert." &
+    # Prüfung, ob die jeweilige HDD bereits gemountet ist.
+    [ -d "$destination" ] || fensterbox question "Backup-Medium\n${destination}\neinstecken bitte\!\nSobald das Sicherungsmedium gemountet wurde,\nbitte mit 'Ja' bestätigen."
+    if [ $? -ne 0 ];then
+        fensterbox question "Soll das gesamte Backup-Vorhaben abgebrochen werden?"
+        [ $? -eq 0 ] && exit 1
     else
-        # Wechsel auf das Ziel-Verzeichnis
-        cd "$destination"
-        
-        Excire-Daten-Backup "$source" "$destination" "$ExcireBackUpDatei"
-        
-        Lightroom-Katalog-Backup "$source" "$destination" "$LRBackUpDatei"
-        
-        Monats-Sicherung "$destination" $aktuellerMonat "$LRBackUpName"
-        
-        Ajustes-Sicherung "$source" "$destination" "$LREinstellungen"
-        
+        echo -e "Backup auf ${destination}\nBeginn um $(date +%F' '%R)"
+        # Prüfung, ob überhaupt eine Sicherung notwendig ist:
+        # wenn source = destination, dann wird Backup abgebrochen,
+        # keine weiteren Aktionen notwendig.
+        chksum "$source" "$destination" "$LRBackUpDatei"
+        if [ $? -eq 0 ]; then
+            fensterbox info "${LRBackUpDatei} auf ${source} ist bereits auf ${destination} gesichert." &
+        else
+            # Wechsel auf das Ziel-Verzeichnis
+            cd "$destination"
+            
+            Excire-Daten-Backup "$source" "$destination" "$ExcireBackUpDatei"
+            
+            Lightroom-Katalog-Backup "$source" "$destination" "$LRBackUpDatei"
+            
+            Monats-Sicherung "$destination" $aktuellerMonat "$LRBackUpName"
+            
+            Ajustes-Sicherung "$source" "$destination" "$LREinstellungen"
+            
+        fi
     fi
-fi
 done
 
 Ende="Backup aller Lightroom-Daten abgeschlossen. $(date +%F' '%R)"

@@ -138,4 +138,5 @@ done
 Ende="Backup aller Lightroom-Daten abgeschlossen. $(date +%F' '%R)"
 fensterbox info "$Ende"
 echo $Ende
-) | tee /home/rwolff/Documentos/log/LR_Backup.log
+echo 
+) | tee -a /home/rwolff/Documentos/log/LR_Backup.log

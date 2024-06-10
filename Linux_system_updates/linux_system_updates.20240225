@@ -1,0 +1,119 @@
+#! /bin/bash
+# Automatisierte System-Updates basierend auf apt
+# Autor: Rüdiger Wolff
+# Abhängigkeiten:
+#    root crontab: @reboot /sbin/linux_system_udpates &> /dev/null
+#    /etc/logrotate.d/
+
+# Deklaration von Varibalen für die Log-Datei:
+SystemName=$(cat /etc/lsb-release | grep ID | cut -d= -f2 | cut -d" " -f1)
+[ $SystemName = "Pop" ] && SystemName=PopOS
+logDatei=$SystemName'_updates.log'
+logPfad="/home/rwolff/Documentos/log/"
+[ -d $logPfad ] || mkdir -p $logPfad
+logFile=$logPfad$logDatei
+
+# Klammer umschliesst gesamtes Skript, um Ausgabe in $logFile zu schreiben.
+(
+
+## Funktion um eine Dekor-Linie auszugeben
+decor () {
+    test "$2" && echo $2
+    for ((i=0;i<$1;i++));do
+        echo -n "*"
+    done
+echo
+}
+
+### ----- Main Programm ----- ###
+# Programm muss beim Startup des Systems warten bis apt geladen ist.
+sleep 60
+
+## Definition globaler Variablen
+StartDate=$(date +%s)
+weekday="Monday"    # Wochentag, an dem autoremove durchgeführt werden soll.
+day="01"            # Tag im Monat, an dem dist-upgrade durchgeführt werden soll.
+
+# El programa valida que s’executi com a root.
+if [ $EUID -ne 0 ];then
+    echo >&2 "ERROR: Cal ser root per executar el programa"
+    exit 1
+fi
+
+# Wenn das Skript am selben Tag bereits ausgeführt wurde, dann endet Programm.
+yetdone=$(find $logPfad -mindepth 1 -name "*.log" -newermt $(date +%D) -size +0)
+if [ -n "$yetdone" ];then
+	touch $logFile.run
+	exit 7
+fi
+
+akt="Es wird auf neue Aktualisierungen geprüft..."
+decor $(wc -c <<< $akt) "$akt"
+apt update
+lastLine=$(tail -1 $logFile)
+#echo "Zur Überprüfung, ob Skript an der Stelle richtig variable lastline füllt:" 
+#echo $lastline
+trigger="Todos los paquetes están actualizados."
+
+# Es wird geguckt, ob Updates vorhanden sind und, wenn ja, werden ausgeführt.
+if [ "$lastLine" != "$trigger" ];then
+    echo
+    upgr="Es werden Upgrades durchgeführt. Bitte warten..."
+    decor $(wc -c <<< $upgr) "$upgr"
+    apt-get -y upgrade
+    echo
+else
+    echo -e "\nEs wurden keine Aktualisierungen durchgeführt.\n"
+fi
+
+# An jedem ersten des Monats wird geprüft, ob ein dist-upgrade möglich ist.
+if [ $(date +%d) = $day  ];then
+    echo
+    dist="Es wird das dist-upgrade durchgeführt..."
+    echo
+    decor $(wc -c <<< $dist) "$dist"
+    apt-get -y dist-upgrade
+    echo
+fi
+
+# An jedem Montag wird ein autoremove bzw. autoclean durchgeführt.
+if [ $(LC_ALL=C date +%A) = "$weekday" ];then
+    echo
+    autorem="Es wird apt-get autoremove, autoclean & clean durchgeführt..."
+    decor $(wc -c <<< $autorem) "$autorem"
+    apt-get -y autoremove
+    echo
+    apt-get autoclean
+    echo
+fi
+
+# Aktualisierung von Flatpak-Programmen
+# Prüfung, ob Flatpak auf dem System installiert ist und Aktualisierung
+which flatpak &> /dev/null
+if [ $? -eq 0 ];then
+    echo
+    flpk="Es wird das Flatpak-Update durchgeführt."
+    decor $(wc -c <<< $flpk) "$flpk"
+    flatpak update -y
+    echo
+else
+    echo "No Flatpak present. Skipping..."
+fi
+
+# Ende des Skripts
+echo
+echo -e "\nDie Ergebnisse der Aktualisierung können in der Datei "$logFile" eingesehen werden.\n"
+
+finish="Your update has finished."
+long=$(( 6+$(wc -c <<< $finish)+6 ))
+echo -n " "
+decor $long
+echo -en " *      $finish     *\n"
+echo -en " *    $(date)    *\n "
+decor $long
+echo
+echo Die Aktualisierung hat $(( $(date +%s)-$StartDate )) Sekunden gedauert.
+echo
+
+# Klammer am Ende umschliesst gesamten Code-Block, um log-file zu schreiben.
+) | tee $logFile

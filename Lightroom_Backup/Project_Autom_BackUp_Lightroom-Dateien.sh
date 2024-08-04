@@ -1,6 +1,9 @@
 #!/bin/bash
-# Some logging. See end of script.
+# Some logging. See end of script. 
+# ==> ~/Documentos/log/LR_Backup.log
+
 (
+
 # Deklaration der Variablen:
 ### Für Test-Zwecke
 #source="/mnt/Programme/testing/sou rce/"
@@ -11,10 +14,23 @@
 LR_version="v13"
 
 source="/mnt/Programme/LIGHTROOM_DATEN/LIGHTROOM_Katalog/"
-destination_orange="/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
-destination_silver="/media/rwolff/Seagate BACKUP Drive/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
-destination_WD3TB="/media/rwolff/WD SONSTIGE DATEN 092014/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
-destination_BackUp_HDD1="/mnt/BackUp_HDD1_072024/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
+# destination_orange="/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
+# destination_silver="/media/rwolff/Seagate BACKUP Drive/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
+# destination_WD3TB="/media/rwolff/WD SONSTIGE DATEN 092014/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
+# destination_BackUp_HDD1="/mnt/BackUp_HDD1_072024/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
+
+# Array mit den Zielordnern
+Destinations=(
+		# Orangene Seagate 5TB
+		# "/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
+		# Silberne Seagate 5TB
+		# "/media/rwolff/Seagate BACKUP Drive/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
+		# Grüne WesternDigital 3TB
+		"/media/rwolff/WD SONSTIGE DATEN 092014/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
+		# CPD HDD 12TB
+		"/mnt/BackUp_HDD1_072024/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
+		)
+
 ExcireBackUpDatei="Lightroom Classic Catalog-${LR_version} Excire.excat"
 ExcireBakDatei="$ExcireBackUpDatei".bak
 lrcat=".lrcat"
@@ -105,7 +121,7 @@ which rsync >& /dev/null
 [ $? -ne 0 ] && installer rsync
 
 # For-Schleife geht durch die 3 HDDs und führt die BackUps durch
-for destination in "$destination_BackUp_HDD1" "$destination_orange" "$destination_silver" "$destination_WD3TB"; do
+for destination in "${Destinations[@]}"; do
 
     # Prüfung, ob die jeweilige HDD bereits gemountet ist.
     [ -d "$destination" ] || fensterbox question "Backup-Medium\n${destination}\neinstecken bitte\!\nSobald das Sicherungsmedium gemountet wurde,\nbitte mit 'Ja' bestätigen."

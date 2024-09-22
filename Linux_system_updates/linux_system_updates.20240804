@@ -36,7 +36,7 @@ day="01"            # Tag im Monat, an dem dist-upgrade durchgeführt werden sol
 
 # El programa valida que s’executi com a root.
 if [ $EUID -ne 0 ];then
-    echo >&2 "ERROR: Skript muss als root ausgeführt werden."
+    echo >&2 "ERROR: Cal ser root per executar el programa"
     exit 1
 fi
 
@@ -51,11 +51,8 @@ akt="Es wird auf neue Aktualisierungen geprüft..."
 decor $(wc -c <<< $akt) "$akt"
 apt update
 lastLine=$(tail -1 $logFile)
-
-testText="Zur Überprüfung, ob Skript an der Stelle richtig variable lastline füllt:" 
-decor $(wc -c <<< $testText) "$testText"
-echo $lastLine
-
+#echo "Zur Überprüfung, ob Skript an der Stelle richtig variable lastline füllt:" 
+#echo $lastline
 trigger="Todos los paquetes están actualizados."
 
 # Es wird geguckt, ob Updates vorhanden sind und, wenn ja, werden ausgeführt.
@@ -101,15 +98,6 @@ if [ $? -eq 0 ];then
     echo
 else
     echo "No Flatpak present. Skipping..."
-fi
-
-# An jedem Montag wird ein wird ein Säuberung der Flatpak-Installationen durchgeführt.
-if [ $(LC_ALL=C date +%A) = "$weekday" ];then
-    echo
-    autoflrm="Es wird eine Flatpak-Säuberung durchgeführt..."
-    decor $(wc -c <<< $autoflrm) "$autoflrm"
-    flatpak -y uninstall --unused
-    echo
 fi
 
 # Ende des Skripts

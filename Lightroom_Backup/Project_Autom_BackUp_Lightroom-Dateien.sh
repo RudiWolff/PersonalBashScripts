@@ -27,7 +27,9 @@ Destinations=(
 		# "/media/rwolff/Seagate BACKUP Drive/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
 		# Grüne WesternDigital 3TB
 		"/media/rwolff/WD SONSTIGE DATEN 092014/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
-		# CPD HDD 12TB
+		# CPD HDD0 12TB
+		"/mnt/BackUp_HDD0_072024/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
+		# CPD HDD1 12TB
 		"/mnt/BackUp_HDD1_072024/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
 		)
 

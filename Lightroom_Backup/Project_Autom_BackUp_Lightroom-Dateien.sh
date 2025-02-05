@@ -1,32 +1,35 @@
 #!/bin/bash
 # Some logging. See end of script. 
 # ==> ~/Documentos/log/LR_Backup.log
+logDatei="/home/rwolff/Documentos/log/LR_Backup.log"
+
+(
+# Trennungslinie zwischen den einzelnen Backup-Events in der Log-Datei
+echo
+for ((i=0;i<70;i++));do 
+    echo -n "*";
+done
+echo
+echo -e "Beginn des Backups am $(date +%F' um '%R)"
+for ((i=0;i<70;i++));do
+    echo -n "*";
+done
+echo
+) >> $logDatei
 
 (
 
 # Deklaration der Variablen:
-### Für Test-Zwecke
-#source="/mnt/Programme/testing/sou rce/"
-#destination_orange="/mnt/Programme/testing/destination orange/"
-#destination_silver="/mnt/Programme/testing/destination silver/"
-#destination_WD3TB="/mnt/Programme/testing/destination WD3TB/"
-
 LR_version="v13"
 
 source="/mnt/Programme/LIGHTROOM_DATEN/LIGHTROOM_Katalog/"
-# destination_orange="/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
-# destination_silver="/media/rwolff/Seagate BACKUP Drive/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
-# destination_WD3TB="/media/rwolff/WD SONSTIGE DATEN 092014/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
-# destination_BackUp_HDD1="/mnt/BackUp_HDD1_072024/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
 
 # Array mit den Zielordnern
 Destinations=(
 		# Orangene Seagate 5TB
-		# "/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
-		# Silberne Seagate 5TB
-		# "/media/rwolff/Seagate BACKUP Drive/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
+		"/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
 		# Grüne WesternDigital 3TB
-		"/media/rwolff/WD SONSTIGE DATEN 092014/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
+		# "/media/rwolff/WD SONSTIGE DATEN 092014/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
 		# CPD HDD0 12TB
 		"/mnt/BackUp_HDD0_072024/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
 		# CPD HDD1 12TB
@@ -122,14 +125,18 @@ which b3sum >& /dev/null
 which rsync >& /dev/null
 [ $? -ne 0 ] && installer rsync
 
-# For-Schleife geht durch die 3 HDDs und führt die BackUps durch
+# For-Schleife geht durch die im Array definierten HDDs und führt die BackUps durch
 for destination in "${Destinations[@]}"; do
 
     # Prüfung, ob die jeweilige HDD bereits gemountet ist.
     [ -d "$destination" ] || fensterbox question "Backup-Medium\n${destination}\neinstecken bitte\!\nSobald das Sicherungsmedium gemountet wurde,\nbitte mit 'Ja' bestätigen."
     if [ $? -ne 0 ];then
         fensterbox question "Soll das gesamte Backup-Vorhaben abgebrochen werden?"
-        [ $? -eq 0 ] && exit 1
+        if [ $? -eq 0 ];then
+            echo -e "Abbruch durch User $(date +%F' '%R)."
+            echo
+            exit 1
+        fi
     else
         echo -e "Backup auf ${destination}\nBeginn um $(date +%F' '%R)"
         # Prüfung, ob überhaupt eine Sicherung notwendig ist:
@@ -138,6 +145,7 @@ for destination in "${Destinations[@]}"; do
         chksum "$source" "$destination" "$LRBackUpDatei"
         if [ $? -eq 0 ]; then
             fensterbox info "${LRBackUpDatei} auf ${source} ist bereits auf ${destination} gesichert." &
+	    echo -e "Kein Backup notwendig. ${LRBackUpName}-Dateien sind gleich (checksum)."
         else
             # Wechsel auf das Ziel-Verzeichnis
             cd "$destination"
@@ -157,5 +165,5 @@ done
 Ende="Backup aller Lightroom-Daten abgeschlossen. $(date +%F' '%R)"
 fensterbox info "$Ende"
 echo $Ende
-echo 
-) | tee -a /home/rwolff/Documentos/log/LR_Backup.log
+
+) | tee -a $logDatei 

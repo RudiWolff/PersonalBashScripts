@@ -20,6 +20,8 @@ gchp="/home/Daniel/.var/app/com.google.Chrome/config/google-chrome/Profile 1/His
 # Letzte kopierte History-Datei:
 oldHistFile="/home/rwolff/Documentos/log/History/History"
 
+# Vergleich der älteren History-Datei mit der aktuellen im History Path $gchp
+# und evtl. Sicherung der älteren Datei
 if [ -f $oldHistFile ]; then
     checksumOldHist=$(b3sum "${oldHistFile}" | cut -d' ' -f1)
     checksum_gchp=$(b3sum "${gchp}" | cut -d' ' -f1)
@@ -27,3 +29,7 @@ if [ -f $oldHistFile ]; then
         cp $oldHistFile $(date +%F'_'%T)_$oldHistFile
     fi
 fi
+
+# Kopie der aktuellen History-Datei in das log-History-Verzeichnis
+cp "$gchp" "$oldHistFile"
+chown rwolff:rwolff /home/rwolff/Documentos/log/History/History

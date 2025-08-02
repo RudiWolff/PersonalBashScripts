@@ -27,7 +27,9 @@ source="/mnt/Programme/LIGHTROOM_DATEN/LIGHTROOM_Katalog/"
 # Array mit den Zielordnern
 Destinations=(
 		# Orangene Seagate 5TB
-		"/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
+		#"/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog/"
+		# Orangene Seagate 5 TB on fedora
+		"/run/media/rwolff/Seagate FOTOGRAFIE Backup 022019/FOTOGRAFIE BackUp/LIGHTROOM_Katalog"
 		# Grüne WesternDigital 3TB
 		# "/media/rwolff/WD SONSTIGE DATEN 092014/FOTOGRAFIE_BackUp/LIGHTROOM_Katalog/"
 		# CPD HDD0 12TB

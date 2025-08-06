@@ -6,7 +6,7 @@
 #    /etc/logrotate.d/
 
 # Deklaration von Varibalen für die Log-Datei:
-SystemName=$(cat /etc/os-release | grep ^ID= | cut -d'=' -f2)
+SystemName=$(cat /etc/os-release | grep -i ^id= | cut -d= -f2)
 # [ $SystemName = "Pop" ] && SystemName=PopOS
 logDatei=$SystemName'_updates.log'
 logPfad="/home/rwolff/Documentos/log/"

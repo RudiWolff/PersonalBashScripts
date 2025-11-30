@@ -6,7 +6,7 @@
 #    /etc/logrotate.d/
 
 # Deklaration von Varibalen für die Log-Datei:
-SystemName=$(cat /etc/os-release | grep ^ID= | cut -d'=' -f2)
+SystemName=$(cat /etc/os-release | grep -i ^id= | cut -d= -f2)
 # [ $SystemName = "Pop" ] && SystemName=PopOS
 logDatei=$SystemName'_updates.log'
 logPfad="/home/rwolff/Documentos/log/"
@@ -28,8 +28,7 @@ case $SystemName in
 		upgrade='dnf up -y'
 		distUpgrade='dnf distro-sync -y'
 		autoclean='dnf clean all'
-		# trigger="Repositories loaded."
-		trigger="anaconda-ks.cfg Sync"
+		trigger="Repositories loaded."
 		;;
 	* )
 		echo "Error: Unbekanntes Betriebssystem"
@@ -71,13 +70,7 @@ if [ -n "$yetdone" ];then
 	exit 7
 fi
 
-# Ausgabe wie viel Speicherplatz vorhanden ist:
-decor 50 Speicherplatz
-df -h -x squashfs -x tmpfs -x devtmpfs
-decor 50 
-echo
 akt="Es wird auf neue Aktualisierungen geprüft..."
-
 decor $(wc -c <<< $akt) "$akt"
 $update
 lastLine=$(tail -1 $logFile)
@@ -85,7 +78,7 @@ lastLine=$(tail -1 $logFile)
 testText="Zur Überprüfung, ob Skript an der Stelle richtig variable lastline füllt:" 
 decor $(wc -c <<< $testText) "$testText"
 echo $lastLine
-cp $logFile $logFile.tmp 
+
 
 # Es wird geguckt, ob Updates vorhanden sind und, wenn ja, werden ausgeführt.
 if [ "$lastLine" != "$trigger" ];then

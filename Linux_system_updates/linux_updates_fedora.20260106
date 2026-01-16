@@ -12,6 +12,7 @@ logDatei=$SystemName'_updates.log'
 logPfad="/home/rwolff/Documentos/log/"
 [ -d $logPfad ] || mkdir -p $logPfad
 logFile=$logPfad$logDatei
+
 # Verschieden Optionen für verschieden Linux Betriebssysteme
 case $SystemName in 
 	linuxmint )
@@ -29,7 +30,8 @@ case $SystemName in
 		distUpgrade='dnf distro-sync -y'
 		autoclean='dnf clean all'
 		# trigger="Repositories loaded."
-		trigger="anaconda-ks.cfg Sync"
+		# trigger="anaconda-ks.cfg Sync"
+		trigger="**********************************************"
 		;;
 	* )
 		echo "Error: Unbekanntes Betriebssystem"
@@ -76,8 +78,8 @@ decor 50 Speicherplatz
 df -h -x squashfs -x tmpfs -x devtmpfs
 decor 50 
 echo
-akt="Es wird auf neue Aktualisierungen geprüft..."
 
+akt="Es wird auf neue Aktualisierungen geprüft..."
 decor $(wc -c <<< $akt) "$akt"
 $update
 lastLine=$(tail -1 $logFile)
@@ -85,7 +87,7 @@ lastLine=$(tail -1 $logFile)
 # testText="Zur Überprüfung, ob Skript an der Stelle richtig variable lastline füllt:" 
 # decor $(wc -c <<< $testText) "$testText"
 # echo $lastLine
-# cp $logFile $logFile.tmp 
+cp $logFile $logFile.tmp 
 
 # Es wird geguckt, ob Updates vorhanden sind und, wenn ja, werden ausgeführt.
 if [ "$lastLine" != "$trigger" ];then
@@ -95,7 +97,7 @@ if [ "$lastLine" != "$trigger" ];then
     $upgrade
     echo
 else
-    echo -e "\nEs wurden keine Aktualisierungen durchgeführt.\n"
+    echo -e "\nEs wurden keine Aktualisierungen gefunden.\n"
 fi
 
 # An jedem ersten des Monats wird geprüft, ob ein dist-upgrade möglich ist.
@@ -126,23 +128,25 @@ if [ $? -eq 0 ];then
     echo
     flpk="Es wird das Flatpak-Update durchgeführt."
     decor $(wc -c <<< $flpk) "$flpk"
-    flatpak update -y
+    echo '--- Update systemweiter Apps ---'
+    flatpak update --system -y
+    echo -e '\n--- Update für User installierte Apps ---'
+    runuser -l rwolff -c 'flatpak update -y --user'
     echo
+# An jedem Montag wird ein wird ein Säuberung der Flatpak-Installationen durchgeführt.
+    if [ $(LC_ALL=C date +%A) = "$weekday" ];then
+        echo
+        autoflrm="Es wird eine Flatpak-Säuberung durchgeführt..."
+        decor $(wc -c <<< $autoflrm) "$autoflrm"
+        flatpak -y uninstall --unused
+        echo
+    fi
 else
     echo "No Flatpak present. Skipping..."
 fi
 
-# An jedem Montag wird ein wird ein Säuberung der Flatpak-Installationen durchgeführt.
-if [ $(LC_ALL=C date +%A) = "$weekday" ];then
-    echo
-    autoflrm="Es wird eine Flatpak-Säuberung durchgeführt..."
-    decor $(wc -c <<< $autoflrm) "$autoflrm"
-    flatpak -y uninstall --unused
-    echo
-fi
 
 # Ende des Skripts
-echo
 echo -e "\nDie Ergebnisse der Aktualisierung können in der Datei "$logFile" eingesehen werden.\n"
 
 finish="Your update has finished."

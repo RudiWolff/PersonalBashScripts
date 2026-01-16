@@ -82,10 +82,10 @@ decor $(wc -c <<< $akt) "$akt"
 $update
 lastLine=$(tail -1 $logFile)
 
-testText="Zur Überprüfung, ob Skript an der Stelle richtig variable lastline füllt:" 
-decor $(wc -c <<< $testText) "$testText"
-echo $lastLine
-cp $logFile $logFile.tmp 
+# testText="Zur Überprüfung, ob Skript an der Stelle richtig variable lastline füllt:" 
+# decor $(wc -c <<< $testText) "$testText"
+# echo $lastLine
+# cp $logFile $logFile.tmp 
 
 # Es wird geguckt, ob Updates vorhanden sind und, wenn ja, werden ausgeführt.
 if [ "$lastLine" != "$trigger" ];then
@@ -126,20 +126,23 @@ if [ $? -eq 0 ];then
     echo
     flpk="Es wird das Flatpak-Update durchgeführt."
     decor $(wc -c <<< $flpk) "$flpk"
-    flatpak update -y
+    # Update systemweiter Apps
+    flatpak update --system -y
+    # Update für User installierte Apps
+    flatpak update --user -y
     echo
+# An jedem Montag wird ein wird ein Säuberung der Flatpak-Installationen durchgeführt.
+    if [ $(LC_ALL=C date +%A) = "$weekday" ];then
+        echo
+        autoflrm="Es wird eine Flatpak-Säuberung durchgeführt..."
+        decor $(wc -c <<< $autoflrm) "$autoflrm"
+        flatpak -y uninstall --unused
+        echo
+    fi
 else
     echo "No Flatpak present. Skipping..."
 fi
 
-# An jedem Montag wird ein wird ein Säuberung der Flatpak-Installationen durchgeführt.
-if [ $(LC_ALL=C date +%A) = "$weekday" ];then
-    echo
-    autoflrm="Es wird eine Flatpak-Säuberung durchgeführt..."
-    decor $(wc -c <<< $autoflrm) "$autoflrm"
-    flatpak -y uninstall --unused
-    echo
-fi
 
 # Ende des Skripts
 echo
